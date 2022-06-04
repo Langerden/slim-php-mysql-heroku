@@ -3,57 +3,86 @@
 class Usuario
 {
     public $id;
-    public $usuario;
-    public $clave;
+    public $username;
+    public $lastname;
+    public $userPassword;
+    public $user_type;
+    public $active;
+    public $email;
 
-    public function crearUsuario()
+    public function CreateUser()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (usuario, clave) VALUES (:usuario, :clave)");
-        $claveHash = password_hash($this->clave, PASSWORD_DEFAULT);
-        $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_STR);
-        $consulta->bindValue(':clave', $claveHash);
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO users (username,lastname,userPassword,user_type,active,email) 
+                                                                     VALUES (:username,:lastname,:userPassword,:user_type,:active,:email)");        $claveHash = password_hash($this->userPassword, PASSWORD_DEFAULT);
+        $consulta->bindValue(':username', $this->username, PDO::PARAM_STR);
+        $consulta->bindValue(':lastname', $this->lastname, PDO::PARAM_STR);
+        $consulta->bindValue(':userPassword',$claveHash, PDO::PARAM_STR);
+        $consulta->bindValue(':user_type', $this->user_type, PDO::PARAM_STR);
+        $consulta->bindValue(':active',"YES", PDO::PARAM_STR);
+        $consulta->bindValue(':email', $this->email, PDO::PARAM_STR);
         $consulta->execute();
 
         return $objAccesoDatos->obtenerUltimoId();
     }
 
-    public static function obtenerTodos()
+    public static function GetAll()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, usuario, clave FROM usuarios");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id,username,lastname,userPassword,user_type,active,email
+                                                        FROM users");
         $consulta->execute();
-
-        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Usuario');
+        return $consulta->fetchAll(PDO::FETCH_OBJ);
     }
 
-    public static function obtenerUsuario($usuario)
+    public static function GetUserById($id)
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, usuario, clave FROM usuarios WHERE usuario = :usuario");
-        $consulta->bindValue(':usuario', $usuario, PDO::PARAM_STR);
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id,username,lastname,userPassword,user_type,active,email
+                                                        FROM users 
+                                                        WHERE id = :id");
+        $consulta->bindValue(':id', $id, PDO::PARAM_INT);
         $consulta->execute();
 
-        return $consulta->fetchObject('Usuario');
+        return $consulta->fetchAll(PDO::FETCH_OBJ);
     }
 
-    public static function modificarUsuario()
+
+    public static function UpdateUser($id,$username,$lastname,$userPassword,$user_type,$active,$email)
     {
         $objAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDato->prepararConsulta("UPDATE usuarios SET usuario = :usuario, clave = :clave WHERE id = :id");
-        $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_STR);
-        $consulta->bindValue(':clave', $this->clave, PDO::PARAM_STR);
-        $consulta->bindValue(':id', $this->id, PDO::PARAM_INT);
+        $consulta = $objAccesoDato->prepararConsulta("UPDATE users 
+                                                    SET username = :username,
+                                                        lastname = :lastname,
+                                                        userPassword = :userPassword,
+                                                        user_type = :user_type,
+                                                        active = :active,
+                                                        email = :email
+                                                    WHERE id = :id");
+        $consulta->bindValue(':id', $id, PDO::PARAM_STR);
+        $consulta->bindValue(':username', $username, PDO::PARAM_STR);
+        $consulta->bindValue(':lastname', $lastname, PDO::PARAM_STR);
+        $consulta->bindValue(':userPassword', $userPassword, PDO::PARAM_STR);
+        $consulta->bindValue(':user_type', $user_type, PDO::PARAM_STR);
+        $consulta->bindValue(':active', $active, PDO::PARAM_STR);
+        $consulta->bindValue(':email', $email, PDO::PARAM_STR);
         $consulta->execute();
     }
 
-    public static function borrarUsuario($usuario)
+    public static function LogicalDeleteUserById($id)
     {
         $objAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDato->prepararConsulta("UPDATE usuarios SET fechaBaja = :fechaBaja WHERE id = :id");
-        $fecha = new DateTime(date("d-m-Y"));
-        $consulta->bindValue(':id', $usuario, PDO::PARAM_INT);
-        $consulta->bindValue(':fechaBaja', date_format($fecha, 'Y-m-d H:i:s'));
+        $consulta = $objAccesoDato->prepararConsulta("UPDATE users SET active = :active WHERE id = :id");
+        $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+        $consulta->bindValue(':active',"NO", PDO::PARAM_STR);
+        $consulta->execute();
+    }
+
+    public static function DataBaseDeleteUserById($id)
+    {
+        $objAccesoDato = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDato->prepararConsulta("DELETE FROM users WHERE id = :id");
+        $consulta->bindValue(':id', $id, PDO::PARAM_INT);
         $consulta->execute();
     }
 }

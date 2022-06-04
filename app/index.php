@@ -13,9 +13,12 @@ use Slim\Routing\RouteContext;
 require __DIR__ . '/../vendor/autoload.php';
 
 require_once './db/AccesoDatos.php';
-// require_once './middlewares/Logger.php';
+require_once './middlewares/Logger.php';
 
 require_once './controllers/UsuarioController.php';
+require_once './controllers/ProductoController.php';
+require_once './controllers/MesaController.php';
+require_once './controllers/PedidoController.php';
 
 // Load ENV
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
@@ -31,16 +34,38 @@ $app->addErrorMiddleware(true, true, true);
 $app->addBodyParsingMiddleware();
 
 // Routes
-$app->group('/usuarios', function (RouteCollectorProxy $group) {
+$app->group('/users', function (RouteCollectorProxy $group) {
     $group->get('[/]', \UsuarioController::class . ':TraerTodos');
-    $group->get('/{usuario}', \UsuarioController::class . ':TraerUno');
+    $group->get('/{id}', \UsuarioController::class .  ':TraerUno');
     $group->post('[/]', \UsuarioController::class . ':CargarUno');
+    $group->put('[/{id}]', \UsuarioController::class . ':ModificarUno');
+    $group->delete('/{id}', \UsuarioController::class . ':BorrarUno');
   });
 
-$app->get('[/]', function (Request $request, Response $response) {    
-    $response->getBody()->write("Hola Mundo");
-    return $response;
+  $app->group('/products', function (RouteCollectorProxy $group) {
+    $group->get('[/]', \ProductoController::class . ':TraerTodos');
+    $group->get('/{id}', \ProductoController::class . ':TraerUno');
+    $group->post('[/]', \ProductoController::class . ':CargarUno');
+    $group->put('[/{id}]', \ProductoController::class . ':ModificarUno');
+    $group->delete('/{id}', \ProductoController::class . ':BorrarUno');
+  });
 
-});
+  $app->group('/tables', function (RouteCollectorProxy $group) {
+    $group->get('[/]', \MesaController::class . ':TraerTodos');
+    $group->get('/{id}', \MesaController::class . ':TraerUno');
+    $group->post('[/]', \MesaController::class . ':CargarUno');
+    $group->put('[/{id}]', \MesaController::class . ':ModificarUno');
+    $group->delete('/{id}', \MesaController::class . ':BorrarUno');
+  });
+
+  $app->group('/orders', function (RouteCollectorProxy $group) {
+    $group->get('[/]', \PedidoController::class . ':TraerTodos');
+    $group->get('/{id}', \PedidoController::class . ':TraerUno');
+    $group->post('[/]', \PedidoController::class . ':CargarUno');
+    $group->put('[/{id}]', \PedidoController::class . ':ModificarUno');
+    $group->delete('/{id}', \PedidoController::class . ':BorrarUno');
+  });
 
 $app->run();
+
+?>
