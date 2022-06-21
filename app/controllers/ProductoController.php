@@ -36,8 +36,6 @@ class ProductoController implements IApiUsable
 
         $id = $args['id'];
         $producto = Product::GetProductById($id);
-
-        HistoricAccions::CreateRegistry(AutentificadorJWT::GetTokenData($jwtHeader)->id, "Obteniendo el producto con id: " . $id);
         
         $payload = json_encode($producto);
 
@@ -52,8 +50,6 @@ class ProductoController implements IApiUsable
         $jwtHeader = $request->getHeaderLine('Authorization');
 
         $lista = Product::GetAllProducts();
-
-        HistoricAccions::CreateRegistry(AutentificadorJWT::GetTokenData($jwtHeader)->id, "Listando todos los productos");
         
         $payload = json_encode(array("products" => $lista));
 

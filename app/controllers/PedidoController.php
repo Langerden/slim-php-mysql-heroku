@@ -32,8 +32,9 @@ class PedidoController implements IApiUsable
         if(!is_null($table) && !is_null($user) && !is_null($product)){
             $order = Order::CreateOrder($tableId, $userId, $productId, $status, rand(10000, 99999), $_FILES['picture']);
             $table = Table::UpdateTable($tableId, 'con cliente esperando pedido');
-            var_dump($table);
-            HistoricAccions::CreateRegistry(AutentificadorJWT::GetTokenData($jwtHeader)->id, "Creando el pedido con id: " . $order->id);
+
+            HistoricAccions::CreateRegistry(AutentificadorJWT::GetTokenData($jwtHeader)->id, 
+            "Creando el pedido con id: " . $order->id);
 
             $payload = json_encode(array("mensaje" => "Pedido ". $order." creado con exito"));
             $response->getBody()->write($payload);
