@@ -1,24 +1,28 @@
 <?php
-require_once './models/Producto.php';
-require_once './interfaces/IApiUsable.php';
 
-class ProductoController extends Producto implements IApiUsable
+//require_once './../models/Product.php';
+
+require_once './interfaces/IApiUsable.php';
+require_once './models/HistoricAccions.php';
+
+class ProductoController implements IApiUsable
 {
     public function CargarUno($request, $response, $args)
     {
+       $jwtHeader = $request->getHeaderLine('Authorization');
+
         $parametros = $request->getParsedBody();
 
         $productName = $parametros['productName'];
-        $price = $parametros['price'];
         $product_type = $parametros['product_type'];
+        $price = $parametros['price'];
+        $description = $parametros['description'];
 
-        $producto = new Producto();
-        $producto->productName = $productName;
-        $producto->price = $price;
-        $producto->product_type = $product_type;
-        $producto->CreateProduct();
+        $productId = Product::CreateProduct($productName, $product_type, $price, $description);
 
-        $payload = json_encode(array("mensaje" => "Producto ".$producto->id."creado con exito"));
+        HistoricAccions::CreateRegistry(AutentificadorJWT::GetTokenData($jwtHeader)->id, "Creando el producto con id: " . $productId);
+        
+        $payload = json_encode(array("mensaje" => "Producto ". $productId ." creado con exito"));
 
         $response->getBody()->write($payload);
         return $response
@@ -28,9 +32,13 @@ class ProductoController extends Producto implements IApiUsable
 
     public function TraerUno($request, $response, $args)
     {
+        $jwtHeader = $request->getHeaderLine('Authorization');
 
         $id = $args['id'];
-        $producto = Producto::GetProductById($id);
+        $producto = Product::GetProductById($id);
+
+        HistoricAccions::CreateRegistry(AutentificadorJWT::GetTokenData($jwtHeader)->id, "Obteniendo el producto con id: " . $id);
+        
         $payload = json_encode($producto);
 
         $response->getBody()->write($payload);
@@ -41,7 +49,12 @@ class ProductoController extends Producto implements IApiUsable
 
     public function TraerTodos($request, $response, $args)
     {
-        $lista = Producto::GetAll();
+        $jwtHeader = $request->getHeaderLine('Authorization');
+
+        $lista = Product::GetAllProducts();
+
+        HistoricAccions::CreateRegistry(AutentificadorJWT::GetTokenData($jwtHeader)->id, "Listando todos los productos");
+        
         $payload = json_encode(array("products" => $lista));
 
         $response->getBody()->write($payload);
@@ -52,17 +65,19 @@ class ProductoController extends Producto implements IApiUsable
     
     public function ModificarUno($request, $response, $args)
     {
+        $jwtHeader = $request->getHeaderLine('Authorization');
+
         $parametros = $request->getParsedBody();
-
         $id = $args['id'];
-        $productName = $parametros['productName'];
         $price = $parametros['price'];
-        $product_type = $parametros['product_type'];
-        $active = $parametros['active'];
+        $description = $parametros['description'];
 
-        Producto::UpdateProduct($id,$productName,$price,$product_type,$active);
+        $productId = Product::UpdateProduct($id, $price, $description);
 
-        $payload = json_encode(array("mensaje" => "Producto ".$id." modificado con exito"));
+        HistoricAccions::CreateRegistry(AutentificadorJWT::GetTokenData($jwtHeader)->id, "Listando todos los productos");
+
+
+        $payload = json_encode(array("mensaje" => "Producto ". $id ." modificado con exito"));
 
         $response->getBody()->write($payload);
         return $response
@@ -73,7 +88,7 @@ class ProductoController extends Producto implements IApiUsable
     public function BorrarUno($request, $response, $args)
     {
         $id = $args['id'];
-        Producto::DataBaseDeleteProductById($id);
+        Product::DeleteProduct($id);
 
         $payload = json_encode(array("mensaje" => "Producto ".$id." borrado con exito"));
 
